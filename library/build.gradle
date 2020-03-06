@@ -1,0 +1,51 @@
+apply plugin: 'kotlin2js'
+
+group 'ru.pocketbyte.locolaser'
+version '1.0'
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-js"
+}
+
+apply plugin: "maven-publish"
+apply plugin: 'com.jfrog.bintray'
+
+publishing {
+    publications {
+        libraryrPublication(MavenPublication) {
+            from components.kotlin
+            groupId 'ru.pocketbyte.locolaser'
+            artifactId 'i18next-externals'
+            version project.version
+        }
+    }
+}
+
+bintray {
+    publish = true
+    override = false
+    user = project.bintray_user
+    key = project.bintray_key
+
+    pkg {
+        repo = 'maven'
+        name = 'i18next-externals'
+        userOrg = 'pocketbyte'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/PocketByte/LocoLaser.git'
+        websiteUrl = 'https://github.com/PocketByte/LocoLaser'
+        issueTrackerUrl = 'https://github.com/PocketByte/LocoLaser/issue'
+        version {
+            name = project.version
+            released  = new Date()
+            vcsTag = project.version
+            gpg.passphrase = project.properties.get("bintray.publish.gpgPassphrase")
+        }
+        publications = ['libraryrPublication']
+    }
+}
