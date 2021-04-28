@@ -5,7 +5,6 @@ version '1.0'
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 dependencies {
@@ -13,39 +12,67 @@ dependencies {
 }
 
 apply plugin: "maven-publish"
-apply plugin: 'com.jfrog.bintray'
+apply plugin: 'signing'
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+}
 
 publishing {
+    repositories {
+        maven {
+            name = "Sonatype"
+            url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2")
+            credentials {
+                username = project.sonatype_user
+                password = project.sonatype_password
+            }
+        }
+    }
     publications {
-        libraryrPublication(MavenPublication) {
+        library(MavenPublication) {
             from components.kotlin
             groupId 'ru.pocketbyte.locolaser'
             artifactId 'i18next-externals'
             version project.version
+            pom {
+                name = 'i18next-externals'
+                description = 'Kotlin externals for JS i18next'
+                url = 'https://github.com/PocketByte/LocoLaser'
+
+                issueManagement {
+                    url = "https://github.com/PocketByte/LocoLaser/issues"
+                }
+                scm {
+                    url = "https://github.com/PocketByte/LocoLaser.git"
+                }
+
+                developers {
+                    developer {
+                        organization = "PocketByte"
+                        organizationUrl = "pocketbyte.ru"
+                        email = "mail@pocketbyte.ru"
+                    }
+                    developer {
+                        name = "Denis Shurygin"
+                        email = "sdi.linch@gmail.com"
+                    }
+                }
+
+                licenses {
+                    license {
+                        name = "The Apache License, Version 2.0"
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+            }
+            artifact sourceJar {
+                classifier "sources"
+            }
         }
     }
 }
 
-bintray {
-    publish = true
-    override = false
-    user = project.bintray_user
-    key = project.bintray_key
-
-    pkg {
-        repo = 'maven'
-        name = 'i18next-externals'
-        userOrg = 'pocketbyte'
-        licenses = ['Apache-2.0']
-        vcsUrl = 'https://github.com/PocketByte/LocoLaser.git'
-        websiteUrl = 'https://github.com/PocketByte/LocoLaser'
-        issueTrackerUrl = 'https://github.com/PocketByte/LocoLaser/issue'
-        version {
-            name = project.version
-            released  = new Date()
-            vcsTag = project.version
-            gpg.passphrase = project.properties.get("bintray.publish.gpgPassphrase")
-        }
-        publications = ['libraryrPublication']
-    }
+signing {
+    sign publishing.publications.library
 }
